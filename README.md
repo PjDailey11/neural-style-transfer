@@ -45,6 +45,24 @@ docker build -t nst:latest .
 docker run --rm -p 8501:8501 nst:latest
 ```
 
+## Hosting on Vercel
+
+Vercel serves the **Next.js project hub** under `web/` (links, README context). **PyTorch, Streamlit, and GPU inference are not executed on Vercel** — run those locally or via Docker / another GPU host.
+
+**Live site:** https://web-six-delta-90.vercel.app (production alias; inspect deployments in the [Vercel dashboard](https://vercel.com/dashboard)).
+
+From `web/`:
+
+```bash
+cd web
+npm install
+npm run build   # optional local check
+npx vercel link --yes   # first time, pick/create project
+npx vercel deploy --prod --yes
+```
+
+In the Vercel dashboard, set the project **Root Directory** to `web` if you import the Git repo instead of using the CLI.
+
 ## License
 
 MIT.

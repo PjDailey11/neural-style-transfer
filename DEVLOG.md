@@ -62,3 +62,22 @@ This log records **what changed**, **why**, and **next steps** after each major 
 - Swap Farneback flow for learned flow (e.g., RAFT) if higher fidelity is required at runtime.
 - Integrate perceptual metrics (LPIPS) and profiling hooks in `evaluate.py`.
 - Wire Streamlit to optional GPU inference queues for concurrent uploads.
+
+---
+
+## 2026-05-06 — Vercel project hub (`web/`)
+
+**What changed**
+
+- Added a minimal **Next.js 14** App Router site under `web/` (static landing + GitHub links). PyTorch/Streamlit remain local/Docker-only by design.
+- Bumped Next to **14.2.35** (security-patched line). Documented deploy steps and live URL in `README.md`.
+- Deployed to Vercel via CLI; production alias: https://web-six-delta-90.vercel.app (project scope `pj-daileyes-projects`, name `web` — rename in Vercel if desired).
+
+**Why**
+
+- Vercel cannot realistically host Streamlit + Torch inference; the Next hub gives a fast public URL for the repo while keeping compute elsewhere.
+
+**Next steps**
+
+- In Vercel: **Connect Git** → set **Root Directory** to `web` for automatic previews on every push.
+- Optional: rename the Vercel project from `web` to `neural-style-transfer` for clarity.

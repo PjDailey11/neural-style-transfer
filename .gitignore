@@ -11,3 +11,8 @@ dist/
 build/
 *.egg-info/
 .DS_Store
+
+# Next.js (Vercel)
+web/node_modules/
+web/.next/
+web/.vercel/
