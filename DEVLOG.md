@@ -116,3 +116,21 @@ This log records **what changed**, **why**, and **next steps** after each major 
 **Next steps**
 
 - Optional live preview image every N steps (slower); CUDA torch.compile toggle for repeat users.
+
+---
+
+## 2026-05-07 — Fix Vercel GitHub check (monorepo root vs `web/`)
+
+**What changed**
+
+- Added root **`vercel.json`**: `npm install --no-package-lock` at repo root, **`npm ci --prefix web`**, **`npm run build --prefix web`** (no fragile `cd` chains).
+- Added minimal root **`package.json`** declaring `next` / `react` / `react-dom` so Vercel’s Next.js version probe sees `node_modules/next` after the root install step.
+- Ignored top-level **`node_modules/`** in `.gitignore`. README Vercel section updated.
+
+**Why**
+
+- Git deployments cloned the full repo and ran `next build` at **repo root**, where there is no `app/` directory (`Couldn't find any pages or app directory`). Routing installs/build through **`web/`** fixes the red **Vercel** status check without relying on a dashboard-only Root Directory setting.
+
+**Next steps**
+
+- Redeploy / push to confirm the GitHub **Vercel** check goes green; optionally clear a stale Vercel build cache from an older upload if a deployment still misbehaves.
