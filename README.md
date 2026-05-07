@@ -51,17 +51,22 @@ Vercel serves the **Next.js project hub** under `web/` (links, README context). 
 
 **Live site:** https://web-six-delta-90.vercel.app (production alias; inspect deployments in the [Vercel dashboard](https://vercel.com/dashboard)).
 
-From `web/`:
+### Git → automatic deploys
+
+The repo **GitHub.com/PjDailey11/neural-style-transfer** is connected to the Vercel project. For builds to succeed, Vercel must use the Next.js app under **`web/`**:
+
+1. Open **[Project → Settings → General](https://vercel.com/pj-daileyes-projects/web/settings/general)** for project **`web`** (team **PJ Daileye's projects**).
+2. Under **Root Directory**, set **`web`**, then save.
+3. Push to `main` (or open a PR): Vercel will install and run `npm run build` from that folder.
+
+CLI deploy from `web/` (optional):
 
 ```bash
 cd web
 npm install
 npm run build   # optional local check
-npx vercel link --yes   # first time, pick/create project
 npx vercel deploy --prod --yes
 ```
-
-In the Vercel dashboard, set the project **Root Directory** to `web` if you import the Git repo instead of using the CLI.
 
 ## License
 

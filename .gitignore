@@ -13,6 +13,6 @@ build/
 .DS_Store
 
 # Next.js (Vercel)
+.vercel/
 web/node_modules/
 web/.next/
-web/.vercel/

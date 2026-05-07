@@ -81,3 +81,21 @@ This log records **what changed**, **why**, and **next steps** after each major 
 
 - In Vercel: **Connect Git** → set **Root Directory** to `web` for automatic previews on every push.
 - Optional: rename the Vercel project from `web` to `neural-style-transfer` for clarity.
+
+---
+
+## 2026-05-06 — Git connected to Vercel
+
+**What changed**
+
+- Ran `vercel git connect https://github.com/PjDailey11/neural-style-transfer.git` from `web/` so pushes trigger Vercel builds.
+- Ran `vercel link` at the monorepo root for local CLI parity (`.vercel/` is gitignored).
+- Root-directory-only hacks (`vercel.json` / stub `package.json` at repo root) were **not** viable: Vercel's Next.js detector still requires the dashboard **Root Directory** field to be `web` (or a classic API token to PATCH the project). Removed those experiments.
+
+**Why**
+
+- OAuth-based CLI login cannot mint classic tokens needed for the Projects API; the supported fix is one dashboard field.
+
+**Next steps**
+
+- Set **Root Directory → `web`** in [project settings](https://vercel.com/pj-daileyes-projects/web/settings/general), then redeploy or push an empty commit.
