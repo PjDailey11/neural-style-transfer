@@ -119,18 +119,20 @@ This log records **what changed**, **why**, and **next steps** after each major 
 
 ---
 
-## 2026-05-07 — Fix Vercel GitHub check (monorepo root vs `web/`)
+## 2026-05-07 — Fix Vercel GitHub check (root clone vs `web/` app)
 
 **What changed**
 
-- Added root **`vercel.json`**: `npm install --no-package-lock` at repo root, **`npm ci --prefix web`**, **`npm run build --prefix web`** (no fragile `cd` chains).
-- Added minimal root **`package.json`** declaring `next` / `react` / `react-dom` so Vercel’s Next.js version probe sees `node_modules/next` after the root install step.
-- Ignored top-level **`node_modules/`** in `.gitignore`. README Vercel section updated.
+- Root **`vercel.json`**: **`npm ci --prefix web`**, then **`npm install --no-package-lock next react react-dom`** at repo root for Next version detection (no duplicate workspace hoisting games).
+- **`buildCommand`** runs **`npm run build --prefix web`** then **`node scripts/sync-web-next.mjs`** to copy **`web/.next` → `.next`** so `routes-manifest.json` exists beside `vercel.json`.
+- Root **`package.json`** is metadata-only; **`web/package-lock.json`** is the canonical frontend lockfile. **`/.next/`** gitignored.
 
 **Why**
 
-- Git deployments cloned the full repo and ran `next build` at **repo root**, where there is no `app/` directory (`Couldn't find any pages or app directory`). Routing installs/build through **`web/`** fixes the red **Vercel** status check without relying on a dashboard-only Root Directory setting.
+1. Git clones the **repo root** — Next must build against **`web/app`**, not the Python tree (`Couldn't find any pages or app directory`).
+2. After that worked, deploy failed with missing **`.next/routes-manifest.json`** at root because output stayed under **`web/.next`**.
+3. Moving **`distDir` to `../.next`** caused **duplicate React** (`useContext` null); syncing **`web/.next`** avoids that.
 
 **Next steps**
 
-- Redeploy / push to confirm the GitHub **Vercel** check goes green; optionally clear a stale Vercel build cache from an older upload if a deployment still misbehaves.
+- Push triggers should go green; optionally **Clear build cache** on Vercel if an old deployment artifact lingers.

@@ -57,11 +57,11 @@ The repo is connected to Vercel as a **monorepo**: the Next app lives in **`web/
 
 **Repo-level `vercel.json`** tells Vercel to:
 
-1. Run **`npm install`** at the repository root (minimal `package.json` declares `next` so version detection works).
-2. Run **`npm ci --prefix web`** for real app dependencies.
-3. Run **`npm run build --prefix web`** so `next build` sees `web/app`.
+1. Run **`npm ci --prefix web`** (tracked lockfile under **`web/package-lock.json`**).
+2. Install **`next` / `react` / `react-dom`** at the repo root **without** a root lockfile so the Next.js preset can read a version from **`node_modules/next`**.
+3. Run **`npm run build --prefix web`**, then **`node scripts/sync-web-next.mjs`** to copy **`web/.next` → `.next`** at the repo root (Vercel expects `routes-manifest.json` beside `vercel.json`).
 
-You can still set **Root Directory → `web`** in the [Vercel project settings](https://vercel.com/pj-daileyes-projects/web/settings/general) if you prefer; then you may simplify or remove the root `package.json` / `vercel.json` overrides.
+You can still set **Root Directory → `web`** in the [Vercel project settings](https://vercel.com/pj-daileyes-projects/web/settings/general) if you prefer a simpler layout.
 
 CLI deploy from `web/` (optional):
 

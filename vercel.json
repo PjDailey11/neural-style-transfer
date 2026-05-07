@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "installCommand": "npm install --no-package-lock && npm ci --prefix web",
-  "buildCommand": "npm run build --prefix web",
+  "installCommand": "npm ci --prefix web && npm install --no-package-lock next@14.2.35 react@18.3.1 react-dom@18.3.1",
+  "buildCommand": "npm run build --prefix web && node scripts/sync-web-next.mjs",
   "devCommand": "npm run dev --prefix web"
 }

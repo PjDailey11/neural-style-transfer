@@ -1,9 +1,9 @@
 {
   "private": true,
   "name": "neural-style-transfer-monorepo",
-  "description": "PyTorch toolkit + Next.js hub in web/. Root deps satisfy Vercel Next.js detection; install/build run inside web/.",
+  "description": "Python NST toolkit + Next hub in web/. JS install/build is driven by vercel.json.",
   "dependencies": {
-    "next": "14.2.35",
+    "next": "^14.2.35",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   }
