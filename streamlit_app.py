@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import time
 from pathlib import Path
 
 import streamlit as st
@@ -39,24 +40,75 @@ def main() -> None:
         tmp_c.write_bytes(content_file.getbuffer())
         tmp_s.write_bytes(style_file.getbuffer())
 
-        content, _ = load_image_tensor(tmp_c, device=device)
-        style, _ = load_image_tensor(tmp_s, device=device)
-
         if mode.startswith("Gatys"):
+            if device.type == "cpu":
+                st.warning(
+                    "You are on **CPU**. Gatys runs many VGG forward/backward passes — "
+                    "full‑resolution images can take **many minutes**. "
+                    "Lower **Max side** and/or **Adam steps** for a quick preview."
+                )
+            max_side = st.slider(
+                "Gatys: max side length (px)",
+                min_value=256,
+                max_value=2048,
+                value=512,
+                step=32,
+                help="Resize so the smaller edge matches this value (keeps aspect ratio). " "Smaller is much faster.",
+            )
+            content, _ = load_image_tensor(tmp_c, image_size=max_side, device=device)
+            style, _ = load_image_tensor(tmp_s, image_size=max_side, device=device)
+
             alpha = st.slider("α content weight", 1e-4, 10.0, 1.0)
             beta = st.slider("β style weight", 1e3, 1e8, 1e6, step=1e5)
             steps = st.slider("Adam steps", 50, 600, 200)
+
             if st.button("Run Gatys"):
-                with st.spinner("Optimizing..."):
-                    model = GatysVGG().to(device)
-                    out = run_gatys_adam(
-                        device, content, style, model, steps=steps, alpha_content=alpha, beta_style=beta
+                prog = st.progress(0.0)
+                status = st.empty()
+                t0 = time.perf_counter()
+
+                def on_step(cur: int, total: int, loss_val: float) -> None:
+                    frac = min(cur / total, 1.0)
+                    prog.progress(frac)
+                    elapsed = time.perf_counter() - t0
+                    eta = ""
+                    if cur > 0 and elapsed > 0:
+                        rate = elapsed / cur
+                        rem = rate * (total - cur)
+                        eta = f" · ETA ~**{rem:.0f}s**"
+                    status.markdown(
+                        f"Step **{cur}** / **{total}** · loss **{loss_val:.4f}** · " f"elapsed **{elapsed:.1f}s**{eta}"
                     )
-                    out_path = Path(".streamlit_cache/out_gatys.png")
-                    save_image_tensor(denormalize_imagenet(out.cpu()), out_path)
-                    st.image(str(out_path), caption="Stylized output", use_container_width=True)
+
+                with st.spinner("Loading VGG-19 (first run may download ~550MB weights)…"):
+                    model = GatysVGG().to(device)
+
+                try:
+                    out = run_gatys_adam(
+                        device,
+                        content,
+                        style,
+                        model,
+                        steps=steps,
+                        alpha_content=alpha,
+                        beta_style=beta,
+                        step_callback=on_step,
+                        callback_every=max(1, steps // 60),
+                    )
+                finally:
+                    prog.progress(1.0)
+
+                status.markdown(
+                    f"**Done** in **{time.perf_counter() - t0:.1f}s** · "
+                    f"output size **{tuple(out.shape[-2:])}** (H×W)."
+                )
+                out_path = Path(".streamlit_cache/out_gatys.png")
+                save_image_tensor(denormalize_imagenet(out.cpu()), out_path)
+                st.image(str(out_path), caption="Stylized output", use_container_width=True)
 
         elif mode.startswith("AdaIN"):
+            content, _ = load_image_tensor(tmp_c, device=device)
+            style, _ = load_image_tensor(tmp_s, device=device)
             if st.button("Run AdaIN"):
                 net = AdaINNet().to(device)
                 if ckpt and Path(ckpt).exists():
@@ -67,6 +119,8 @@ def main() -> None:
                     save_image_tensor(denormalize_imagenet(out.cpu()), out_path)
                     st.image(str(out_path), caption="AdaIN output", use_container_width=True)
         else:
+            content, _ = load_image_tensor(tmp_c, device=device)
+            style, _ = load_image_tensor(tmp_s, device=device)
             st.info("Temporal preview: AdaIN plus flow blending on the still image (demo only).")
             tmode = st.selectbox("Temporal mode", [TemporalMode.ADAIN_EMA.value, TemporalMode.ADAIN_FLOW.value])
             if st.button("Simulate two-frame temporal blend"):

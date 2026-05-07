@@ -99,3 +99,20 @@ This log records **what changed**, **why**, and **next steps** after each major 
 **Next steps**
 
 - Set **Root Directory → `web`** in [project settings](https://vercel.com/pj-daileyes-projects/web/settings/general), then redeploy or push an empty commit.
+
+---
+
+## 2026-05-06 — Streamlit Gatys progress + sane defaults
+
+**What changed**
+
+- `run_gatys_adam` accepts optional `step_callback` / `callback_every` for UI progress.
+- Streamlit Gatys path: **resize** via **max side** (default **512**), CPU warning, **`st.progress`** + step/loss/elapsed/ETA text, separate spinner for VGG weight load.
+
+**Why**
+
+- Full‑resolution Gatys on CPU looks “stuck” inside `st.spinner` because Streamlit does not repaint until the blocking loop finishes; progress widgets update incrementally. Downsampling makes interactive use feasible.
+
+**Next steps**
+
+- Optional live preview image every N steps (slower); CUDA torch.compile toggle for repeat users.

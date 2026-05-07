@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import copy
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 
 import torch
 import torch.nn as nn
@@ -102,6 +102,8 @@ def run_gatys_adam(
     beta_style: float = 1e6,
     lr: float = 1.0,
     log_every: int = 50,
+    step_callback: Callable[[int, int, float], None] | None = None,
+    callback_every: int = 1,
 ) -> torch.Tensor:
     """Optimize output image with Adam (default) — LBFGS optional via caller.
 
@@ -115,6 +117,9 @@ def run_gatys_adam(
         alpha_content: Weight on content loss (α).
         beta_style: Weight on style loss (β).
         lr: Learning rate for Adam fallback path.
+        step_callback: Optional hook invoked as ``(step, total_steps, loss)`` with *step*
+            in ``1 .. total_steps``. Useful for UIs (e.g. Streamlit progress).
+        callback_every: Invoke ``step_callback`` every N steps (and always on the final step).
 
     Returns:
         Stylized tensor in normalized ImageNet space.
@@ -149,6 +154,9 @@ def run_gatys_adam(
 
         if log_every and (step + 1) % log_every == 0:
             print(f"[gatys-adam] step {step+1}/{steps} loss={loss.item():.4f}")
+
+        if step_callback is not None and (callback_every <= 1 or (step + 1) % callback_every == 0 or step == steps - 1):
+            step_callback(step + 1, steps, float(loss.detach()))
 
     return gen.detach()
 
