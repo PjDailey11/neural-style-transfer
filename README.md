@@ -6,6 +6,28 @@ Production-oriented PyTorch implementations of:
 2. **Fast AdaIN** — Encoder–decoder feed-forward network with adaptive instance normalization for arbitrary styles.
 3. **Video stylization** — AdaIN with exponential moving-average smoothing or optical-flow–guided blending; optional **ReCoNet-style** residual network trained with occlusion-aware temporal loss.
 
+## What this project is (lowest level)
+
+This repo is two things that share one name and one Git history:
+
+- **A Python/PyTorch toolkit** that takes a *content* image (or video frames) and a *style* image, then produces stylized output by running one of a few neural style transfer pipelines.
+- **A small Next.js “project hub”** in `web/` that exists mainly to present the project on the web (docs/links), not to run PyTorch inference.
+
+At the lowest level, “style transfer” here means:
+
+1. Load and preprocess inputs (decode image/video → tensors, resize/crop, normalize to the backbone’s expected space).
+2. Run a **pipeline**:
+   - **Gatys optimization**: start from a copy/noise image and iteratively update pixels to minimize a weighted sum of content + style losses (style via **Gram matrices**) using Adam/L‑BFGS.
+   - **AdaIN**: encode content + style features, match feature statistics (adaptive instance norm), then decode back to an image in one forward pass.
+   - **Video modes**: apply AdaIN per-frame plus temporal stabilization (EMA or flow-guided blending). Optional ReCoNet-style network adds an explicit temporal loss during training.
+3. Postprocess outputs (denormalize tensors → images, encode to PNG/JPG/MP4, write to disk).
+
+Code-wise, most of the “real work” lives under `src/nst/`:
+
+- **`src/nst/models/`**: model definitions (VGG features, AdaIN encoder/decoder, temporal/residual networks).
+- **`src/nst/utils/`**: loss functions (content/style/temporal), Gram matrix, optical flow helpers, tensor/image IO utilities.
+- **Entrypoints**: `transform_image.py` / `transform_video.py` wire together “load → run pipeline → save” so the repo can be used as a CLI tool or imported as a module.
+
 ## Layout
 
 - `src/nst/models/` — Gatys backbone, AdaIN, ReCoNet-style residual net, temporal pipelines.
